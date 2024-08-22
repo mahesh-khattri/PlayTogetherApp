@@ -6,5 +6,5 @@ Inside the app, users can explore various game categories and view details such 
 required team numbers, and locations. Users can only join games with available slots,
 while games that are fully booked will not offer the option to join.
 
-Now, it also support crud operations for the admin user, where an admin can add new sport, 
+Now, it also supports crud operations for the admin user, where an admin can add new sport, 
 edit and delete the existing sports in the app.
