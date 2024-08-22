@@ -101,19 +101,16 @@ class Playtogether : ComponentActivity() {
 fun PlaytogetherApp() {
     val navController = rememberNavController()
     val viewModel: PlaytogetherViewModel = viewModel()
-
     NavHost(navController, startDestination = "sign_in") {
         composable("sign_up") { SignUpScreen(navController) }
         composable("sign_in") { SignInScreen(navController) }
         composable("main") { MainScreen(navController, viewModel) }
         composable("admin_dashboard") { AdminDashboardScreen(viewModel,navController) }
-
-
         composable("sport_details/{sportName}") { backStackEntry ->
             val sportName = backStackEntry.arguments?.getString("sportName") ?: ""
             val sport = viewModel.sports.find { it.name == sportName }
             if (sport != null) {
-                SportDetailsScreen(sport, navController, viewModel)
+                SportDetailsScreen(sport)
             }
         }
         composable("join_confirmation/{sportName}") { backStackEntry ->
@@ -298,9 +295,6 @@ fun SignInScreen(navController: NavController) {
 @Composable
 fun MainScreen(navController: NavController, viewModel: PlaytogetherViewModel) {
     Column(modifier = Modifier.padding(16.dp)) {
-//        Button(onClick = { navController.navigate("admin_dashboard") }) {
-//            Text("Admin Dashboard")
-//        }
         Spacer(modifier = Modifier.height(16.dp))
         LazyColumn {
             items(viewModel.sports) { sport ->
@@ -330,7 +324,7 @@ fun AdminDashboardScreen(viewModel: PlaytogetherViewModel, navController: NavCon
             SportAddDialog(
                 onDismiss = { showAddSportDialog = false },
                 onAdd = { newSport ->
-                    viewModel.sports = viewModel.sports + newSport
+                    viewModel.sports += newSport
                     showAddSportDialog = false
                 }
             )
@@ -338,13 +332,9 @@ fun AdminDashboardScreen(viewModel: PlaytogetherViewModel, navController: NavCon
     }
 }
 
-@Composable
-fun ManageUsersScreen() {
-    // Implement Manage Users Screen UI here
-}
 
 @Composable
-fun SportDetailsScreen(sport: Sport, navController: NavController, viewModel: PlaytogetherViewModel) {
+fun SportDetailsScreen(sport: Sport) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text("Sport Details", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
@@ -622,7 +612,7 @@ fun SportCard(sport: Sport, navController: NavController, isAdmin: Boolean, view
                 SportAddDialog(
                     onDismiss = { showAddSportDialog = false },
                     onAdd = { newSport ->
-                        viewModel.sports = viewModel.sports + newSport
+                        viewModel.sports += newSport
                         showAddSportDialog = false
                     }
                 )
