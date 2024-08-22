@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "209385953446",
+    "firebase_url": "https://playtogether-1-default-rtdb.firebaseio.com",
+    "project_id": "playtogether-1",
+    "storage_bucket": "playtogether-1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:209385953446:android:dcaaefbb8a88e7a1823c67",
+        "android_client_info": {
+          "package_name": "com.example.playtogether"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-DRb51LxRJ49XlrKgLoHjXVmm87zGoac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:209385953446:android:4175f547ec9af352823c67",
+        "android_client_info": {
+          "package_name": "com.example.playtogether"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-DRb51LxRJ49XlrKgLoHjXVmm87zGoac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
