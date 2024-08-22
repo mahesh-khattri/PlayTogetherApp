@@ -96,5 +96,5 @@ dependencies {
     // Firebase Authentication
     implementation(libs.firebase.auth.ktx)
 
-
+    implementation (libs.coil.compose.v250)
 }

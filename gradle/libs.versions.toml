@@ -1,8 +1,11 @@
 [versions]
+accompanistCoil = "0.24.13-rc"
 agp = "8.5.1"
 androidxComposeBom = "2024.06.00"
 androidxEspressoCore = "3.5.0"
 androidxJunit = "1.2.1"
+coilCompose = "2.2.2"
+coilComposeVersion = "2.5.0"
 espressoCoreVersion = "3.5.1"
 firebaseAuthKtx = "23.0.0"
 firebaseBom = "33.1.2"
@@ -25,11 +28,14 @@ uiToolingPreview = "1.6.8"
 firebaseDatabaseKtx = "21.0.0"
 
 [libraries]
+accompanist-coil = { module = "com.google.accompanist:accompanist-coil", version.ref = "accompanistCoil" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-espresso-core-v350 = { module = "androidx.test.espresso:espresso-core", version.ref = "androidxEspressoCore" }
 androidx-junit-v115 = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+coil-compose-v250 = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 compose-bom-v20230800 = { module = "androidx.compose:compose-bom", version.ref = "androidxComposeBom" }
 espresso-core = { module = "androidx.espresso:espresso-core", version.ref = "espressoCoreVersion" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
