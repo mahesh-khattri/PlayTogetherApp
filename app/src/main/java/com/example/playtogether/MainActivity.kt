@@ -1,8 +1,11 @@
 package com.example.playtogether
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -57,9 +61,9 @@ data class Sport(
     val name: String,
     val location: String,
     val time: String,
-    val availableMembers: Int,
-    val requiredMembers: Int,
-    val imageResId: Int, // Default drawable resource ID
+    var availableMembers: Int,
+    var requiredMembers: Int,
+    val imageResId: Int? = 0, // Default drawable resource ID
     val imageUri: String? = null // URI for picked images
 )
 
@@ -67,9 +71,18 @@ data class Sport(
 class PlaytogetherViewModel : ViewModel() {
     var sports by mutableStateOf(
         listOf(
-            Sport("Basketball", "Halifax", "4pm", 10, 1, R.drawable.basketball),
-            Sport("Soccer", "Bedford", "5pm", 9, 2, R.drawable.soccer),
-            Sport("Cricket", "Dartmouth", "6pm", 11, 0, R.drawable.cricket)
+            Sport(
+                "Basketball", "Halifax", "4pm", 10,
+                1, R.drawable.basketball
+            ),
+            Sport(
+                "Soccer", "Bedford", "5pm", 9,
+                2, R.drawable.soccer
+            ),
+            Sport(
+                "Cricket", "Dartmouth", "6pm", 11,
+                0, R.drawable.cricket
+            )
         )
     )
 
@@ -105,7 +118,7 @@ fun PlaytogetherApp() {
         composable("sign_up") { SignUpScreen(navController) }
         composable("sign_in") { SignInScreen(navController) }
         composable("main") { MainScreen(navController, viewModel) }
-        composable("admin_dashboard") { AdminDashboardScreen(viewModel,navController) }
+        composable("admin_dashboard") { AdminDashboardScreen(viewModel, navController) }
         composable("sport_details/{sportName}") { backStackEntry ->
             val sportName = backStackEntry.arguments?.getString("sportName") ?: ""
             val sport = viewModel.sports.find { it.name == sportName }
@@ -121,7 +134,9 @@ fun PlaytogetherApp() {
             val sportName = backStackEntry.arguments?.getString("sportName") ?: ""
             val sport = viewModel.sports.find { it.name == sportName }
             if (sport != null) {
-                SportEditDialog(sport, onDismiss = { navController.popBackStack() }, onSave = { updatedSport ->
+                EditSportDialog(
+                    sport, onDismiss = { navController.popBackStack() }, onSave =
+                    { updatedSport ->
                     viewModel.updateSport(updatedSport)
                     navController.popBackStack()
                 })
@@ -183,7 +198,10 @@ fun SignUpScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             if (errorMessage.isNotEmpty()) {
-                Text(text = errorMessage, color = Color.Red, modifier = Modifier.align(Alignment.CenterHorizontally))
+                Text(
+                    text = errorMessage, color = Color.Red, modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
             Button(onClick = {
@@ -257,7 +275,10 @@ fun SignInScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             if (errorMessage.isNotEmpty()) {
-                Text(text = errorMessage, color = Color.Red, modifier = Modifier.align(Alignment.CenterHorizontally))
+                Text(
+                    text = errorMessage, color = Color.Red, modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
             Button(onClick = {
@@ -269,14 +290,13 @@ fun SignInScreen(navController: NavController) {
                         .addOnCompleteListener { task ->
                             isProcessing = false
                             if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            if (user?.email == "admin@gmail.com") {
-                                navController.navigate("admin_dashboard")
+                                val user = auth.currentUser
+                                if (user?.email == "admin@gmail.com") {
+                                    navController.navigate("admin_dashboard")
+                                } else {
+                                    navController.navigate("main")
+                                }
                             } else {
-                                navController.navigate("main")
-                            }
-                            }
-                             else {
                                 errorMessage = "User not found or incorrect password"
                             }
                         }
@@ -298,8 +318,10 @@ fun MainScreen(navController: NavController, viewModel: PlaytogetherViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
         LazyColumn {
             items(viewModel.sports) { sport ->
-                SportCard(sport = sport, navController = navController, isAdmin = false,
-                    viewModel = viewModel)
+                SportCard(
+                    sport = sport, navController = navController, isAdmin = false,
+                    viewModel = viewModel
+                )
             }
         }
     }
@@ -316,12 +338,15 @@ fun AdminDashboardScreen(viewModel: PlaytogetherViewModel, navController: NavCon
         Spacer(modifier = Modifier.height(16.dp))
         LazyColumn {
             items(viewModel.sports) { sport ->
-                SportCard(sport = sport, navController = navController, isAdmin = true, viewModel = viewModel)
+                SportCard(
+                    sport = sport, navController = navController, isAdmin = true,
+                    viewModel = viewModel
+                )
             }
         }
 
         if (showAddSportDialog) {
-            SportAddDialog(
+            AddSportDialog(
                 onDismiss = { showAddSportDialog = false },
                 onAdd = { newSport ->
                     viewModel.sports += newSport
@@ -386,7 +411,7 @@ fun ConfirmationDialog(
 }
 
 @Composable
-fun SportEditDialog(
+fun EditSportDialog(
     sport: Sport,
     onDismiss: () -> Unit,
     onSave: (Sport) -> Unit
@@ -396,6 +421,17 @@ fun SportEditDialog(
     var time by remember { mutableStateOf(sport.time) }
     var availableMembers by remember { mutableStateOf(sport.availableMembers.toString()) }
     var requiredMembers by remember { mutableStateOf(sport.requiredMembers.toString()) }
+    var imageUri by remember { mutableStateOf(sport.imageUri) }
+
+    // Image picker related state and launcher
+//    val context = LocalContext.current
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            imageUri = it.toString()
+        }
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(modifier = Modifier.padding(16.dp)) {
@@ -403,20 +439,23 @@ fun SportEditDialog(
                 Text(text = "Edit Sport", style = MaterialTheme.typography.headlineMedium)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                TextField(value = name, onValueChange = { name = it }, label = { Text("Sport Name") })
+                TextField(value = name, onValueChange = { name = it },
+                    label = { Text("Sport Name") })
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TextField(value = location, onValueChange = { location = it }, label = { Text("Location") })
+                TextField(value = location, onValueChange = { location = it },
+                    label = { Text("Location") })
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TextField(value = time, onValueChange = { time = it }, label = { Text("Time") })
+                TextField(value = time, onValueChange = { time = it },
+                    label = { Text("Time") })
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TextField(
                     value = availableMembers,
                     onValueChange = { availableMembers = it },
                     label = { Text("Available Members") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -424,8 +463,36 @@ fun SportEditDialog(
                     value = requiredMembers,
                     onValueChange = { requiredMembers = it },
                     label = { Text("Required Members") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Display selected image or default image
+                val painter: Painter? = if (imageUri != null) {
+                    rememberAsyncImagePainter(imageUri)
+                } else {
+                    sport.imageResId?.let { painterResource(id = it) } // Replace with your default image resource
+                }
+                if (painter != null) {
+                    Image(
+                        painter = painter,
+                        contentDescription = "Sport Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .padding(8.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Button to pick an image
+                Button(onClick = {
+                    imagePickerLauncher.launch("image/*")
+                }) {
+                    Text("Pick Image")
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(modifier = Modifier.align(Alignment.End)) {
@@ -439,7 +506,8 @@ fun SportEditDialog(
                             location = location,
                             time = time,
                             availableMembers = availableMembers.toIntOrNull() ?: 0,
-                            requiredMembers = requiredMembers.toIntOrNull() ?: 0
+                            requiredMembers = requiredMembers.toIntOrNull() ?: 0,
+                            imageUri = imageUri
                         )
                         onSave(updatedSport)
                     }) {
@@ -452,48 +520,62 @@ fun SportEditDialog(
 }
 
 @Composable
-fun SportAddDialog(
+fun AddSportDialog(
     onDismiss: () -> Unit,
     onAdd: (Sport) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
-    var availableMembers by remember { mutableStateOf("0") }
-    var requiredMembers by remember { mutableStateOf("0") }
+    var availableMembers by remember { mutableStateOf("") }
+    var requiredMembers by remember { mutableStateOf("") }
+    var imageUri by remember { mutableStateOf<String?>(null) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    // Image picker related state and launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            imageUri = it.toString()
+        }
+    }
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Error") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                Button(onClick = { showErrorDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(modifier = Modifier.padding(16.dp)) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Add Sport", style = MaterialTheme.typography.headlineMedium)
+                Text(text = "Add New Sport", style = MaterialTheme.typography.headlineMedium)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Sport Name") }
-                )
+                TextField(value = name, onValueChange = { name = it },
+                    label = { Text("Sport Name") })
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TextField(
-                    value = location,
-                    onValueChange = { location = it },
-                    label = { Text("Location") }
-                )
+                TextField(value = location, onValueChange = { location = it },
+                    label = { Text("Location") })
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TextField(
-                    value = time,
-                    onValueChange = { time = it },
-                    label = { Text("Time") }
-                )
+                TextField(value = time, onValueChange = { time = it },
+                    label = { Text("Time") })
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TextField(
                     value = availableMembers,
                     onValueChange = { availableMembers = it },
                     label = { Text("Available Members") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -501,8 +583,34 @@ fun SportAddDialog(
                     value = requiredMembers,
                     onValueChange = { requiredMembers = it },
                     label = { Text("Required Members") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Display selected image or default image
+                val painter: Painter = if (imageUri != null) {
+                    rememberAsyncImagePainter(imageUri)
+                } else {
+                    painterResource(id = R.drawable.cricket)
+                }
+                Image(
+                    painter = painter,
+                    contentDescription = "Sport Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .padding(8.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Button to pick an image
+                Button(onClick = {
+                    imagePickerLauncher.launch("image/*")
+                }) {
+                    Text("Pick Image")
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(modifier = Modifier.align(Alignment.End)) {
@@ -510,16 +618,26 @@ fun SportAddDialog(
                         Text("Cancel")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
+
                     TextButton(onClick = {
-                        val newSport = Sport(
-                            name = name,
-                            location = location,
-                            time = time,
-                            availableMembers = availableMembers.toIntOrNull() ?: 0,
-                            requiredMembers = requiredMembers.toIntOrNull() ?: 0,
-                            imageResId = R.drawable.cricket // Use a default image or adjust as needed
-                        )
-                        onAdd(newSport)
+                        if (name.isBlank() || location.isBlank() || time.isBlank() ||
+                            availableMembers.isBlank() || requiredMembers.isBlank()
+                        ) {
+                            errorMessage = "Please fill out all the input fields."
+                            showErrorDialog = true
+                        } else {
+                            // Create the new Sport object safely
+                            val newSport = Sport(
+                                name = name,
+                                location = location,
+                                time = time,
+                                availableMembers = availableMembers.toIntOrNull() ?: 0,
+                                requiredMembers = requiredMembers.toIntOrNull() ?: 0,
+                                imageUri = imageUri // Nullable, so it can be null
+                            )
+                            onAdd(newSport)
+
+                        }
                     }) {
                         Text("Add")
                     }
@@ -531,9 +649,15 @@ fun SportAddDialog(
 
 
 @Composable
-fun SportCard(sport: Sport, navController: NavController, isAdmin: Boolean, viewModel: PlaytogetherViewModel) {
+fun SportCard(
+    sport: Sport,
+    navController: NavController,
+    isAdmin: Boolean,
+    viewModel: PlaytogetherViewModel
+) {
     var showJoinConfirmation by remember { mutableStateOf(false) }
-    var showEditDialog by remember { mutableStateOf(false) }  // State to control the Edit Dialog visibility
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showAddSportDialog by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier
@@ -548,17 +672,19 @@ fun SportCard(sport: Sport, navController: NavController, isAdmin: Boolean, view
             val painter = if (sport.imageUri != null) {
                 rememberAsyncImagePainter(sport.imageUri)
             } else {
-                painterResource(id = sport.imageResId)
+                sport.imageResId?.let { painterResource(id = it) }
             }
 
-            Image(
-                painter = painter,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-            )
+            if (painter != null) {
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = sport.name, style = MaterialTheme.typography.titleMedium)
             Text(text = "Location: ${sport.location}", style = MaterialTheme.typography.bodyMedium)
@@ -569,36 +695,50 @@ fun SportCard(sport: Sport, navController: NavController, isAdmin: Boolean, view
             Spacer(modifier = Modifier.height(8.dp))
 
             if (isAdmin) {
-                // Admin options: Edit, Delete, Add
+                // Admin options: Edit and Delete
                 Button(onClick = { showEditDialog = true }) {
                     Text("Edit Sport")
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = { viewModel.deleteSport(sport.name)
-                    navController.popBackStack()}) {
+                Button(onClick = { showDeleteConfirmation = true }) {
                     Text("Delete Sport")
+                }
+
+                if (showDeleteConfirmation) {
+                    ConfirmationDialog(
+                        message = "Are you sure you want to delete ${sport.name}?",
+                        onConfirm = {
+                            viewModel.deleteSport(sport.name)
+                            navController.currentBackStackEntry// Pop back to the previous screen
+                            showDeleteConfirmation = false // Dismiss the dialog
+                        },
+                        onDismiss = { showDeleteConfirmation = false } // Dismiss the dialog
+                    )
                 }
             } else if (sport.requiredMembers > 0) {
                 // Normal user option: Join
                 Button(onClick = { showJoinConfirmation = true }) {
                     Text("Join Sport")
                 }
-            }
 
-            if (showJoinConfirmation) {
-                ConfirmationDialog(
-                    message = "Do you really want to join ${sport.name}?",
-                    onConfirm = {
-                        // Handle the joining logic here
-                        navController.navigate("join_confirmation/${sport.name}")
-                    },
-                    onDismiss = { showJoinConfirmation = false }
-                )
+                if (showJoinConfirmation) {
+                    ConfirmationDialog(
+                        message = "Do you really want to join ${sport.name}?",
+                        onConfirm = {
+                            sport.availableMembers += 1
+                            sport.requiredMembers -= 1
+
+                            // Handle the joining logic here
+                            navController.navigate("join_confirmation/${sport.name}")
+                        },
+                        onDismiss = { showJoinConfirmation = false }
+                    )
+                }
             }
 
             if (showEditDialog) {
-                SportEditDialog(
+                EditSportDialog(
                     sport = sport,
                     onDismiss = { showEditDialog = false },
                     onSave = { updatedSport ->
@@ -607,19 +747,20 @@ fun SportCard(sport: Sport, navController: NavController, isAdmin: Boolean, view
                     }
                 )
             }
-
             if (showAddSportDialog) {
-                SportAddDialog(
+                AddSportDialog(
                     onDismiss = { showAddSportDialog = false },
                     onAdd = { newSport ->
                         viewModel.sports += newSport
                         showAddSportDialog = false
-                    }
-                )
+                    })
             }
         }
     }
 }
+
+
+
 
 @Preview(showBackground = true)
 @Composable
