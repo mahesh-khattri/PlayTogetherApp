@@ -119,6 +119,7 @@ fun PlaytogetherApp() {
         composable("sign_in") { SignInScreen(navController) }
         composable("main") { MainScreen(navController, viewModel) }
         composable("admin_dashboard") { AdminDashboardScreen(viewModel, navController) }
+        composable("congratulations") { CongratulationsScreen(navController) }
         composable("sport_details/{sportName}") { backStackEntry ->
             val sportName = backStackEntry.arguments?.getString("sportName") ?: ""
             val sport = viewModel.sports.find { it.name == sportName }
@@ -213,7 +214,7 @@ fun SignUpScreen(navController: NavController) {
                         .addOnCompleteListener { task ->
                             isProcessing = false
                             if (task.isSuccessful) {
-                                navController.navigate("main")
+                                navController.navigate("congratulations")
                             } else {
                                 errorMessage = task.exception?.localizedMessage ?: "Sign Up failed"
                             }
@@ -385,6 +386,30 @@ fun JoinConfirmationScreen(sportName: String, navController: NavController) {
     }
 }
 
+
+@Composable
+fun CongratulationsScreen(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Congratulations! You have successfully signed up!",
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { navController.navigate("sign_in") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Go to Sign In")
+        }
+    }
+}
 @Composable
 fun ConfirmationDialog(
     message: String,

@@ -97,4 +97,24 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
 
     implementation (libs.coil.compose.v250)
+
+
+    //weather api
+//    implementation (libs.retrofit)
+//
+//
+//    implementation (libs.retrofit2.retrofit)
+//
+//
+//
+//
+//    // Gson converter for Retrofit
+//    implementation (libs.converter.gson)
+//
+//    // Gson library
+//    implementation (libs.gson)
+//
+//    // OkHttp logging interceptor (optional)
+//    implementation (libs.logging.interceptor)
+
 }
