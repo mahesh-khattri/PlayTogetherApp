@@ -18,14 +18,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -315,16 +320,41 @@ fun SignInScreen(navController: NavController) {
 
 @Composable
 fun MainScreen(navController: NavController, viewModel: PlaytogetherViewModel) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(8.dp)) {
+
+        // Log out button with icon at the top right
+        IconButton(
+            onClick = {
+                navController.navigate("sign_in")
+            },
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                contentDescription = "Log out",
+                tint = Color(0xFF6200EE),
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        // LazyColumn for the sports list
+        LazyColumn(
+            modifier = Modifier
+                .align(Alignment.TopStart) // Align the list to the top start
+                .padding(top = 56.dp) // Add top padding to avoid overlap with the button
+        ) {
             items(viewModel.sports) { sport ->
                 SportCard(
-                    sport = sport, navController = navController, isAdmin = false,
+                    sport = sport,
+                    navController = navController,
+                    isAdmin = false,
                     viewModel = viewModel
                 )
             }
         }
+
+
     }
 }
 
@@ -332,15 +362,38 @@ fun MainScreen(navController: NavController, viewModel: PlaytogetherViewModel) {
 @Composable
 fun AdminDashboardScreen(viewModel: PlaytogetherViewModel, navController: NavController) {
     var showAddSportDialog by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.padding(16.dp)) {
-        Button(onClick = { showAddSportDialog = true }) {
-            Text("Add Sport")
+        Row(modifier = Modifier.fillMaxWidth()) {
+            // "Add Sport" button aligned to the start
+            Button(onClick = { showAddSportDialog = true }) {
+                Text("Add Sport")
+            }
+            Spacer(modifier = Modifier.weight(1f)) // Pushes the icon button to the right
+
+            // Log out icon aligned to the end
+            IconButton(
+                onClick = {
+                    navController.navigate("sign_in")
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = "Log out",
+                    tint = Color(0xFF6200EE),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         LazyColumn {
             items(viewModel.sports) { sport ->
                 SportCard(
-                    sport = sport, navController = navController, isAdmin = true,
+                    sport = sport,
+                    navController = navController,
+                    isAdmin = true,
                     viewModel = viewModel
                 )
             }
@@ -397,7 +450,7 @@ fun CongratulationsScreen(navController: NavController) {
     ) {
         Text(
             text = "Congratulations! You have successfully signed up!",
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineSmall
         )
 
         Spacer(modifier = Modifier.height(16.dp))
